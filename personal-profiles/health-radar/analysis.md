@@ -1,0 +1,3 @@
+# Evaluation goal
+
+Rank AI-biomedicine and oncology news by scientific and clinical significance. Score 8-10 for credible trial results, approvals, major validated discoveries, or material platform and partnership milestones; 5-7 for substantive preclinical results, trial starts, and useful research; 2-4 for early claims with limited evidence; 0-1 for promotional or unrelated material. Distinguish human clinical evidence from animal, preclinical, or computational results. Preserve trial phase, sample size, endpoints, company, target, modality, and regulator when supplied. Use three to five specific topic tags.

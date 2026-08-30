@@ -1,0 +1,12 @@
+{
+  "id": "health-radar",
+  "name": "AI Biomedicine Radar",
+  "display_names": {"zh": "AI制药、癌症疫苗与生物医药"},
+  "match": "match.md",
+  "analysis": "analysis.md",
+  "content": {"analysis_max_chars": 1400, "enrichment_max_chars": 2600, "sampling": "prefix"},
+  "enrichment": {
+    "prompt": "enrichment.md",
+    "blocks": [{"id": "summary", "type": "section", "tools": [], "primary": true}]
+  }
+}

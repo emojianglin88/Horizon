@@ -4,70 +4,102 @@
     "model": "deepseek-v4-flash-0731",
     "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
     "api_key_env": "DASHSCOPE_API_KEY",
-    "temperature": 0.3,
-    "max_tokens": 4096,
-    "throttle_sec": 1,
-    "languages": ["zh", "en"],
-    "analysis_concurrency": 2,
-    "enrichment_concurrency": 2
+    "temperature": 0.2,
+    "max_tokens": 2048,
+    "throttle_sec": 0.2,
+    "languages": ["zh"],
+    "analysis_concurrency": 12,
+    "enrichment_concurrency": 8
   },
   "processing": {
-    "profiles_dir": "profiles",
-    "default_profile": "tech-news",
+    "profiles_dir": "personal-profiles",
+    "default_profile": "tech-radar",
     "profile_settings": {
-      "tech-news": {"threshold": 7.0, "topic_dedup": true},
-      "tech-blog": {"threshold": 6.0, "topic_dedup": true},
-      "finance-news": {"threshold": 7.0, "topic_dedup": true}
+      "market-radar": {"threshold": null, "topic_dedup": true},
+      "tech-radar": {"threshold": null, "topic_dedup": true},
+      "health-radar": {"threshold": null, "topic_dedup": true}
     }
   },
   "sources": {
     "github": [
-      {"type": "user_events", "username": "karpathy", "enabled": true, "profile": "tech-news"},
-      {"type": "repo_releases", "owner": "openai", "repo": "openai-python", "enabled": true, "profile": "tech-news"},
-      {"type": "repo_releases", "owner": "vllm-project", "repo": "vllm", "enabled": true, "profile": "tech-news"}
+      {"type": "user_events", "username": "karpathy", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "openai", "repo": "openai-python", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "vllm-project", "repo": "vllm", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "huggingface", "repo": "transformers", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "ggml-org", "repo": "llama.cpp", "enabled": true, "category": "edge-ai", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "ollama", "repo": "ollama", "enabled": true, "category": "edge-ai", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "NVIDIA", "repo": "TensorRT-LLM", "enabled": true, "category": "semiconductors", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "All-Hands-AI", "repo": "OpenHands", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "continuedev", "repo": "continue", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
+      {"type": "repo_releases", "owner": "projectdiscovery", "repo": "nuclei", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"}
     ],
     "hackernews": {
       "enabled": true,
-      "fetch_top_stories": 30,
-      "min_score": 100,
-      "profile": "tech-news"
+      "fetch_top_stories": 60,
+      "min_score": 50,
+      "category": "technology",
+      "profile": "tech-radar"
     },
     "rss": [
-      {
-        "name": "Simon Willison",
-        "url": "https://simonwillison.net/atom/everything/",
-        "enabled": true,
-        "category": "ai-tools",
-        "profile": "tech-blog",
-        "content_extractor": "trafilatura"
-      },
-      {
-        "name": "GitHub Trending - Daily",
-        "url": "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
-        "enabled": true,
-        "category": "github-trending",
-        "profile": "tech-news"
-      },
-      {
-        "name": "CNBC Finance",
-        "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
-        "enabled": true,
-        "category": "finance",
-        "profile": "finance-news",
-        "content_extractor": "trafilatura"
-      }
+      {"name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml", "enabled": true, "category": "us-economy", "profile": "market-radar"},
+      {"name": "US SEC Press Releases", "url": "https://www.sec.gov/news/pressreleases.rss", "enabled": true, "category": "regulation", "profile": "market-radar"},
+      {"name": "Xinhua Finance", "url": "https://www.xinhuanet.com/finance/news_finance.xml", "enabled": true, "category": "china-economy", "profile": "market-radar"},
+      {"name": "Xinhua Economy", "url": "https://www.xinhuanet.com/fortune/news_fortune.xml", "enabled": true, "category": "china-economy", "profile": "market-radar"},
+      {"name": "CNA Finance", "url": "https://feeds.feedburner.com/rsscna/finance", "enabled": true, "category": "asia-markets", "profile": "market-radar"},
+
+      {"name": "Google China Economy", "url": "https://news.google.com/rss/search?q=%28China%20economy%20OR%20PBOC%20OR%20%E4%B8%AD%E5%9B%BD%E7%BB%8F%E6%B5%8E%20OR%20%E4%BA%BA%E6%B0%91%E9%93%B6%E8%A1%8C%20OR%20PMI%29%20when%3A1d&hl=zh-CN&gl=CN&ceid=CN%3Azh-Hans", "enabled": true, "category": "china-economy", "profile": "market-radar"},
+      {"name": "Google A Shares", "url": "https://news.google.com/rss/search?q=%28A%E8%82%A1%20OR%20%E6%B2%AA%E6%B7%B1300%20OR%20%E7%A7%91%E5%88%9B%E6%9D%BF%20OR%20%E8%AF%81%E7%9B%91%E4%BC%9A%20OR%20%E4%B8%8A%E4%BA%A4%E6%89%80%20OR%20%E6%B7%B1%E4%BA%A4%E6%89%80%29%20when%3A1d&hl=zh-CN&gl=CN&ceid=CN%3Azh-Hans", "enabled": true, "category": "a-shares", "profile": "market-radar"},
+      {"name": "Google Hong Kong Stocks", "url": "https://news.google.com/rss/search?q=%28%E6%B8%AF%E8%82%A1%20OR%20%E6%81%92%E7%94%9F%E6%8C%87%E6%95%B0%20OR%20%E6%B8%AF%E4%BA%A4%E6%89%80%20OR%20Hang%20Seng%29%20when%3A1d&hl=zh-CN&gl=HK&ceid=HK%3Azh-Hant", "enabled": true, "category": "hk-stocks", "profile": "market-radar"},
+      {"name": "Google US Economy", "url": "https://news.google.com/rss/search?q=%28Federal%20Reserve%20OR%20US%20CPI%20OR%20US%20jobs%20OR%20Treasury%20yields%20OR%20US%20GDP%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "us-economy", "profile": "market-radar"},
+      {"name": "Google US Stocks", "url": "https://news.google.com/rss/search?q=%28US%20stocks%20OR%20S%26P%20500%20OR%20Nasdaq%20OR%20Dow%20Jones%20OR%20earnings%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "us-stocks", "profile": "market-radar"},
+      {"name": "Google Options", "url": "https://news.google.com/rss/search?q=%28stock%20options%20OR%20options%20market%20OR%20implied%20volatility%20OR%20VIX%20OR%20zero-day%20options%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "options", "profile": "market-radar"},
+
+      {"name": "OpenAI News", "url": "https://openai.com/news/rss.xml", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"name": "GitHub Blog", "url": "https://github.blog/feed/", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
+      {"name": "NVIDIA Blog", "url": "https://blogs.nvidia.com/feed/", "enabled": true, "category": "semiconductors", "profile": "tech-radar"},
+      {"name": "Hugging Face Blog", "url": "https://huggingface.co/blog/feed.xml", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"name": "Semiconductor Engineering", "url": "https://semiengineering.com/feed/", "enabled": true, "category": "semiconductors", "profile": "tech-radar"},
+      {"name": "EE Times", "url": "https://www.eetimes.com/feed/", "enabled": true, "category": "semiconductors", "profile": "tech-radar"},
+      {"name": "Xinhua Technology", "url": "https://www.xinhuanet.com/tech/news_tech.xml", "enabled": true, "category": "technology", "profile": "tech-radar"},
+      {"name": "CNA Technology", "url": "https://feeds.feedburner.com/rsscna/technology", "enabled": true, "category": "technology", "profile": "tech-radar"},
+      {"name": "arXiv AI", "url": "https://rss.arxiv.org/rss/cs.AI", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"name": "arXiv Security", "url": "https://rss.arxiv.org/rss/cs.CR", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+
+      {"name": "CISA Advisories", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+      {"name": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+      {"name": "The Hacker News", "url": "https://feeds.feedburner.com/TheHackersNews", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+      {"name": "Krebs on Security", "url": "https://krebsonsecurity.com/feed/", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+      {"name": "Dark Reading", "url": "https://www.darkreading.com/rss.xml", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+
+      {"name": "Google AI Models", "url": "https://news.google.com/rss/search?q=%28artificial%20intelligence%20OR%20large%20language%20model%20OR%20AI%20agent%20OR%20multimodal%20model%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
+      {"name": "Google AI Coding", "url": "https://news.google.com/rss/search?q=%28AI%20coding%20OR%20coding%20agent%20OR%20Codex%20OR%20Claude%20Code%20OR%20GitHub%20Copilot%20OR%20Cursor%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
+      {"name": "Google Semiconductors", "url": "https://news.google.com/rss/search?q=%28semiconductor%20OR%20AI%20chip%20OR%20NVIDIA%20OR%20AMD%20OR%20Intel%20OR%20TSMC%20OR%20ASML%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "semiconductors", "profile": "tech-radar"},
+      {"name": "Google Edge AI", "url": "https://news.google.com/rss/search?q=%28edge%20AI%20OR%20on-device%20AI%20OR%20on-device%20model%20OR%20NPU%20OR%20small%20language%20model%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "edge-ai", "profile": "tech-radar"},
+      {"name": "Google Cybersecurity", "url": "https://news.google.com/rss/search?q=%28cybersecurity%20OR%20zero-day%20OR%20CVE%20OR%20ransomware%20OR%20data%20breach%20OR%20exploit%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+
+      {"name": "FDA Press Releases", "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml", "enabled": true, "category": "biomedicine", "profile": "health-radar"},
+      {"name": "Fierce Biotech", "url": "https://www.fiercebiotech.com/rss/xml", "enabled": true, "category": "ai-drug-discovery", "profile": "health-radar"},
+      {"name": "Google AI Drug Discovery", "url": "https://news.google.com/rss/search?q=%28AI%20drug%20discovery%20OR%20AI%20pharma%20OR%20generative%20AI%20drug%20design%20OR%20protein%20design%20OR%20clinical%20trial%20AI%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "ai-drug-discovery", "profile": "health-radar"},
+      {"name": "Google Cancer Vaccines", "url": "https://news.google.com/rss/search?q=%28cancer%20vaccine%20OR%20personalized%20cancer%20vaccine%20OR%20mRNA%20cancer%20vaccine%20OR%20neoantigen%20vaccine%20OR%20tumor%20immunotherapy%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "cancer-vaccines", "profile": "health-radar"}
     ],
     "reddit": {"enabled": false, "subreddits": [], "users": [], "fetch_comments": 0},
     "telegram": {"enabled": false, "channels": []},
-    "ossinsight": {"enabled": false}
+    "ossinsight": {"enabled": true, "period": "past_24_hours", "languages": ["All", "Python", "TypeScript", "C++"], "keywords": ["ai", "agent", "llm", "security", "model", "inference"], "min_stars": 10, "max_items": 40, "category": "ai-coding", "profile": "tech-radar"}
   },
   "collection": {"time_window_hours": 24},
   "digest": {
-    "max_items": 15,
-    "profile_order": ["tech-news", "tech-blog", "finance-news"],
-    "category_groups": {},
+    "max_items": 250,
+    "profile_order": ["market-radar", "tech-radar", "health-radar"],
+    "category_groups": {
+      "china-markets": {"name": "中国经济、A股与港股", "limit": 60, "categories": ["china-economy", "a-shares", "hk-stocks", "asia-markets"]},
+      "us-global-markets": {"name": "美国经济、美股与期权", "limit": 70, "categories": ["us-economy", "us-stocks", "options", "regulation"]},
+      "ai-models-dev": {"name": "AI、端侧模型与AI编程", "limit": 75, "categories": ["ai-models", "edge-ai", "ai-coding", "technology"]},
+      "chips": {"name": "芯片与半导体", "limit": 35, "categories": ["semiconductors"]},
+      "security": {"name": "黑客技术与网络安全", "limit": 40, "categories": ["cybersecurity"]},
+      "biotech": {"name": "AI制药与癌症疫苗", "limit": 35, "categories": ["ai-drug-discovery", "cancer-vaccines", "biomedicine"]}
+    },
     "default_group": "other",
-    "default_group_limit": null
+    "default_group_limit": 10
   },
   "webhook": {"enabled": false}
 }

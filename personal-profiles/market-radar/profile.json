@@ -1,0 +1,12 @@
+{
+  "id": "market-radar",
+  "name": "Market Radar",
+  "display_names": {"zh": "经济、股票与期权"},
+  "match": "match.md",
+  "analysis": "analysis.md",
+  "content": {"analysis_max_chars": 1200, "enrichment_max_chars": 2400, "sampling": "prefix"},
+  "enrichment": {
+    "prompt": "enrichment.md",
+    "blocks": [{"id": "summary", "type": "section", "tools": [], "primary": true}]
+  }
+}

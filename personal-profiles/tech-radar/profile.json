@@ -1,0 +1,12 @@
+{
+  "id": "tech-radar",
+  "name": "Technology Radar",
+  "display_names": {"zh": "AI、芯片、AI编程与安全"},
+  "match": "match.md",
+  "analysis": "analysis.md",
+  "content": {"analysis_max_chars": 1200, "enrichment_max_chars": 2400, "sampling": "prefix"},
+  "enrichment": {
+    "prompt": "enrichment.md",
+    "blocks": [{"id": "summary", "type": "section", "tools": [], "primary": true}]
+  }
+}
