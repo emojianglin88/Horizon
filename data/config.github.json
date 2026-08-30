@@ -53,6 +53,12 @@
       {"name": "Google US Economy", "url": "https://news.google.com/rss/search?q=%28Federal%20Reserve%20OR%20US%20CPI%20OR%20US%20jobs%20OR%20Treasury%20yields%20OR%20US%20GDP%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "us-economy", "profile": "market-radar"},
       {"name": "Google US Stocks", "url": "https://news.google.com/rss/search?q=%28US%20stocks%20OR%20S%26P%20500%20OR%20Nasdaq%20OR%20Dow%20Jones%20OR%20earnings%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "us-stocks", "profile": "market-radar"},
       {"name": "Google Options", "url": "https://news.google.com/rss/search?q=%28stock%20options%20OR%20options%20market%20OR%20implied%20volatility%20OR%20VIX%20OR%20zero-day%20options%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "options", "profile": "market-radar"},
+      {"name": "Google Quant Trading", "url": "https://news.google.com/rss/search?q=%28quantitative%20trading%20OR%20algorithmic%20trading%20OR%20systematic%20trading%20OR%20factor%20investing%20OR%20market%20microstructure%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
+      {"name": "QuantStart", "url": "https://www.quantstart.com/feed/", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
+      {"name": "Alpha Architect", "url": "https://alphaarchitect.com/feed/", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
+      {"name": "Quantpedia", "url": "https://quantpedia.com/feed/", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
+      {"name": "arXiv Quant Trading", "url": "https://rss.arxiv.org/rss/q-fin.TR", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
+      {"name": "arXiv Portfolio Management", "url": "https://rss.arxiv.org/rss/q-fin.PM", "enabled": true, "category": "quant-trading", "profile": "market-radar"},
 
       {"name": "OpenAI News", "url": "https://openai.com/news/rss.xml", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
       {"name": "GitHub Blog", "url": "https://github.blog/feed/", "enabled": true, "category": "ai-coding", "profile": "tech-radar"},
@@ -92,7 +98,7 @@
     "profile_order": ["market-radar", "tech-radar", "health-radar"],
     "category_groups": {
       "china-markets": {"name": "中国经济、A股与港股", "limit": 60, "categories": ["china-economy", "a-shares", "hk-stocks", "asia-markets"]},
-      "us-global-markets": {"name": "美国经济、美股与期权", "limit": 70, "categories": ["us-economy", "us-stocks", "options", "regulation"]},
+      "us-global-markets": {"name": "美国经济、美股、期权与量化", "limit": 85, "categories": ["us-economy", "us-stocks", "options", "quant-trading", "regulation"]},
       "ai-models-dev": {"name": "AI、端侧模型与AI编程", "limit": 75, "categories": ["ai-models", "edge-ai", "ai-coding", "technology"]},
       "chips": {"name": "芯片与半导体", "limit": 35, "categories": ["semiconductors"]},
       "security": {"name": "黑客技术与网络安全", "limit": 40, "categories": ["cybersecurity"]},
