@@ -97,12 +97,13 @@
     "max_items": 250,
     "profile_order": ["market-radar", "tech-radar", "health-radar"],
     "category_groups": {
-      "china-markets": {"name": "中国经济、A股与港股", "limit": 60, "categories": ["china-economy", "a-shares", "hk-stocks", "asia-markets"]},
-      "us-global-markets": {"name": "美国经济、美股、期权与量化", "limit": 85, "categories": ["us-economy", "us-stocks", "options", "quant-trading", "regulation"]},
-      "ai-models-dev": {"name": "AI、端侧模型与AI编程", "limit": 75, "categories": ["ai-models", "edge-ai", "ai-coding", "technology"]},
-      "chips": {"name": "芯片与半导体", "limit": 35, "categories": ["semiconductors"]},
-      "security": {"name": "黑客技术与网络安全", "limit": 40, "categories": ["cybersecurity"]},
-      "biotech": {"name": "AI制药与癌症疫苗", "limit": 35, "categories": ["ai-drug-discovery", "cancer-vaccines", "biomedicine"]}
+      "china-markets": {"name": "中国经济、A股与港股", "limit": 45, "categories": ["china-economy", "a-shares", "hk-stocks", "asia-markets"]},
+      "us-global-markets": {"name": "美国经济、美股与期权", "limit": 55, "categories": ["us-economy", "us-stocks", "options", "regulation"]},
+      "quant-trading": {"name": "量化交易与系统化投资", "limit": 25, "categories": ["quant-trading"]},
+      "ai-models-dev": {"name": "AI、端侧模型与AI编程", "limit": 55, "categories": ["ai-models", "edge-ai", "ai-coding", "technology"]},
+      "chips": {"name": "芯片与半导体", "limit": 20, "categories": ["semiconductors"]},
+      "security": {"name": "黑客技术与网络安全", "limit": 20, "categories": ["cybersecurity"]},
+      "biotech": {"name": "AI制药与癌症疫苗", "limit": 20, "categories": ["ai-drug-discovery", "cancer-vaccines", "biomedicine"]}
     },
     "default_group": "other",
     "default_group_limit": 10
