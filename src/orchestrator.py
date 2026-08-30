@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import re
 from typing import Dict, List, Literal, Optional
 from urllib.parse import unquote_plus, urlsplit
 import httpx
@@ -623,7 +624,9 @@ class HorizonOrchestrator:
 
         This is a stable stage helper for integrations such as MCP.
 
-        Sends all item titles, tags, and summaries to AI in a single call.
+        Sends bounded batches of item titles, tags, and summaries to AI. Batching
+        keeps large daily feeds from truncating the JSON response and makes a
+        failed call affect only its own batch.
         Items must already be sorted by analysis score descending so that the first
         item in each duplicate group is always the highest-scored one.
         Content (comments) from duplicate items is merged into the primary.
@@ -636,62 +639,139 @@ class HorizonOrchestrator:
         from .ai.prompting.deduplication import TOPIC_DEDUP_SYSTEM, TOPIC_DEDUP_USER
         from .ai.utils import parse_json_response
 
-        # Build the item list for the prompt
-        lines = []
-        for i, item in enumerate(items):
-            analysis = item.processing.analysis if item.processing else None
-            tags = ", ".join(analysis.tags) if analysis and analysis.tags else "—"
-            summary = analysis.summary if analysis else "—"
-            lines.append(f"[{i}] {item.title}\n    Tags: {tags}\n    Summary: {summary}")
-        items_text = "\n\n".join(lines)
+        def normalized_title(item: ContentItem) -> str:
+            # News/RSS titles commonly end with a publisher suffix. Removing it
+            # makes copies from aggregators adjacent without changing the title.
+            title = re.split(r"\s+(?:-|–|—|\|)\s+", item.title, maxsplit=1)[0]
+            return re.sub(r"[^0-9a-z\u3400-\u9fff]+", "", title.casefold())
 
-        try:
-            ai_client = create_ai_client(self.config.ai)
-            response = await ai_client.complete(
-                system=TOPIC_DEDUP_SYSTEM,
-                user=TOPIC_DEDUP_USER.format(items=items_text),
-            )
-            result = parse_json_response(response)
-            if result is None:
-                if log:
-                    self.console.print("[yellow]  dedup: could not parse AI response, skipping[/yellow]")
-                return items
+        # Remove exact normalized-title copies across the whole profile first;
+        # this also catches aggregator titles with different publisher suffixes.
+        normalized_groups: dict[str, list[int]] = defaultdict(list)
+        for index, item in enumerate(items):
+            key = normalized_title(item)
+            if key:
+                normalized_groups[key].append(index)
 
-            duplicate_groups = result.get("duplicates", [])
-        except Exception as e:
-            if log:
-                self.console.print(f"[yellow]  dedup: AI call failed ({e}), skipping[/yellow]")
-            return items
-
-        if not duplicate_groups:
-            return items
-
-        # Build a set of indices to drop (all non-primary duplicates)
         drop_indices: set[int] = set()
-        for group in duplicate_groups:
-            if not isinstance(group, list) or len(group) < 2:
+        for group in normalized_groups.values():
+            if len(group) < 2:
                 continue
-            primary_idx = group[0]
-            if primary_idx < 0 or primary_idx >= len(items):
-                continue
+            primary_idx = min(group)
             primary = items[primary_idx]
-            for dup_idx in group[1:]:
-                if not isinstance(dup_idx, int) or dup_idx < 0 or dup_idx >= len(items):
-                    continue
+            for dup_idx in group:
                 if dup_idx == primary_idx:
                     continue
                 dup = items[dup_idx]
-                # Merge comments/content from the duplicate into the primary
-                if dup.content:
-                    if not primary.content or dup.content not in primary.content:
-                        label = dup.source_type.value
-                        primary.content = (primary.content or "") + f"\n\n--- From {label} ---\n{dup.content}"
-                if log:
-                    self.console.print(
-                        f"   [dim]dedup: keep [{primary_idx}] {primary.title}[/dim]\n"
-                        f"   [dim]       drop [{dup_idx}] {dup.title}[/dim]"
+                if dup.content and (
+                    not primary.content or dup.content not in primary.content
+                ):
+                    primary.content = (
+                        (primary.content or "")
+                        + f"\n\n--- From {dup.source_type.value} ---\n{dup.content}"
                     )
                 drop_indices.add(dup_idx)
+
+        # Similar titles are intentionally adjacent, while the original global
+        # index is retained so the highest-scored item remains the primary.
+        ordered_indices = sorted(
+            (index for index in range(len(items)) if index not in drop_indices),
+            key=lambda index: (normalized_title(items[index]), index),
+        )
+        if len(ordered_indices) <= 1:
+            return [item for i, item in enumerate(items) if i not in drop_indices]
+
+        batch_size = 60
+        ai_client = create_ai_client(self.config.ai)
+        failed_batches = 0
+
+        for batch_number, start in enumerate(
+            range(0, len(ordered_indices), batch_size), 1
+        ):
+            global_indices = ordered_indices[start : start + batch_size]
+            # Within a batch, restore importance order for the model's primary.
+            global_indices.sort()
+            lines = []
+            for local_index, global_index in enumerate(global_indices):
+                item = items[global_index]
+                analysis = item.processing.analysis if item.processing else None
+                tags = ", ".join(analysis.tags) if analysis and analysis.tags else "—"
+                summary = analysis.summary if analysis else "—"
+                lines.append(
+                    f"[{local_index}] {item.title}\n    Tags: {tags}\n    Summary: {summary}"
+                )
+
+            try:
+                response = await ai_client.complete(
+                    system=TOPIC_DEDUP_SYSTEM,
+                    user=TOPIC_DEDUP_USER.format(items="\n\n".join(lines)),
+                    max_tokens=4096,
+                )
+                result = parse_json_response(response)
+                if not isinstance(result, dict):
+                    failed_batches += 1
+                    if log:
+                        self.console.print(
+                            f"[yellow]  dedup: batch {batch_number} returned "
+                            "invalid JSON, keeping it[/yellow]"
+                        )
+                    continue
+                duplicate_groups = result.get("duplicates", [])
+                if not isinstance(duplicate_groups, list):
+                    failed_batches += 1
+                    continue
+            except Exception as e:
+                failed_batches += 1
+                if log:
+                    self.console.print(
+                        f"[yellow]  dedup: batch {batch_number} failed ({e}), keeping it[/yellow]"
+                    )
+                continue
+
+            for group in duplicate_groups:
+                if not isinstance(group, list) or len(group) < 2:
+                    continue
+                valid_local_indices = [
+                    index
+                    for index in group
+                    if isinstance(index, int)
+                    and not isinstance(index, bool)
+                    and 0 <= index < len(global_indices)
+                ]
+                if len(valid_local_indices) < 2:
+                    continue
+                # Never trust the model's ordering: choose the earliest global
+                # index, which is the highest score in the original item list.
+                valid_global_indices = [
+                    global_indices[index] for index in valid_local_indices
+                ]
+                primary_idx = min(valid_global_indices)
+                primary = items[primary_idx]
+                for dup_idx in valid_global_indices:
+                    if dup_idx == primary_idx or dup_idx in drop_indices:
+                        continue
+                    dup = items[dup_idx]
+                    if dup.content and (
+                        not primary.content or dup.content not in primary.content
+                    ):
+                        label = dup.source_type.value
+                        primary.content = (
+                            (primary.content or "")
+                            + f"\n\n--- From {label} ---\n{dup.content}"
+                        )
+                    if log:
+                        self.console.print(
+                            f"   [dim]dedup: keep [{primary_idx}] {primary.title}[/dim]\n"
+                            f"   [dim]       drop [{dup_idx}] {dup.title}[/dim]"
+                        )
+                    drop_indices.add(dup_idx)
+
+        if log:
+            batches = (len(ordered_indices) + batch_size - 1) // batch_size
+            self.console.print(
+                f"  dedup: {batches} batches, removed {len(drop_indices)} duplicate(s)"
+                + (f", {failed_batches} batch(es) kept after failure" if failed_batches else "")
+            )
 
         return [item for i, item in enumerate(items) if i not in drop_indices]
 

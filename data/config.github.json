@@ -71,7 +71,7 @@
       {"name": "arXiv AI", "url": "https://rss.arxiv.org/rss/cs.AI", "enabled": true, "category": "ai-models", "profile": "tech-radar"},
       {"name": "arXiv Security", "url": "https://rss.arxiv.org/rss/cs.CR", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
 
-      {"name": "CISA Advisories", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
+      {"name": "CISA Advisories", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "enabled": false, "category": "cybersecurity", "profile": "tech-radar"},
       {"name": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
       {"name": "The Hacker News", "url": "https://feeds.feedburner.com/TheHackersNews", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},
       {"name": "Krebs on Security", "url": "https://krebsonsecurity.com/feed/", "enabled": true, "category": "cybersecurity", "profile": "tech-radar"},

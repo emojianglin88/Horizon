@@ -152,6 +152,56 @@ def test_filter_items_skips_ai_topic_dedup_for_disabled_profile(monkeypatch) -> 
     assert [item.id for item in result.items] == ["first", "second"]
 
 
+def test_topic_dedup_batches_large_feeds(monkeypatch) -> None:
+    orchestrator = make_orchestrator(DigestConfig())
+    orchestrator.config.ai = SimpleNamespace()
+    calls: list[dict[str, object]] = []
+
+    class FakeAIClient:
+        async def complete(self, **kwargs):  # type: ignore[no-untyped-def]
+            calls.append(kwargs)
+            assert kwargs["max_tokens"] == 4096
+            assert kwargs["user"].count("\n    Tags:") <= 60
+            return '{"duplicates": []}'
+
+    monkeypatch.setattr(
+        "src.orchestrator.create_ai_client", lambda config: FakeAIClient()
+    )
+    items = [
+        make_item(f"item-{index:03d}", 10 - index / 100, "ai")
+        for index in range(125)
+    ]
+
+    result = asyncio.run(orchestrator.merge_topic_duplicates(items, log=False))
+
+    assert result == items
+    assert len(calls) == 3
+
+
+def test_topic_dedup_keeps_highest_scored_item(monkeypatch) -> None:
+    orchestrator = make_orchestrator(DigestConfig())
+    orchestrator.config.ai = SimpleNamespace()
+
+    class FakeAIClient:
+        async def complete(self, **kwargs):  # type: ignore[no-untyped-def]
+            return '{"duplicates": [[1, 0]]}'
+
+    monkeypatch.setattr(
+        "src.orchestrator.create_ai_client", lambda config: FakeAIClient()
+    )
+    items = [
+        make_item("alpha-launch", 9.0, "ai"),
+        make_item("launch-alpha", 8.0, "ai"),
+    ]
+    items[0].content = "primary"
+    items[1].content = "duplicate"
+
+    result = asyncio.run(orchestrator.merge_topic_duplicates(items, log=False))
+
+    assert [item.id for item in result] == ["alpha-launch"]
+    assert "duplicate" in (result[0].content or "")
+
+
 def test_runtime_threshold_override_takes_priority() -> None:
     orchestrator = make_orchestrator(DigestConfig())
     item = make_item("item", 7.5, "ai")
