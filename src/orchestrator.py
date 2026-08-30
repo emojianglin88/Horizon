@@ -624,7 +624,7 @@ class HorizonOrchestrator:
 
         This is a stable stage helper for integrations such as MCP.
 
-        Sends bounded batches of item titles, tags, and summaries to AI. Batching
+        Sends bounded batches of item titles and tags to AI. Batching
         keeps large daily feeds from truncating the JSON response and makes a
         failed call affect only its own batch.
         Items must already be sorted by analysis score descending so that the first
@@ -696,17 +696,19 @@ class HorizonOrchestrator:
                 item = items[global_index]
                 analysis = item.processing.analysis if item.processing else None
                 tags = ", ".join(analysis.tags) if analysis and analysis.tags else "—"
-                summary = analysis.summary if analysis else "—"
-                lines.append(
-                    f"[{local_index}] {item.title}\n    Tags: {tags}\n    Summary: {summary}"
-                )
+                lines.append(f"[{local_index}] {item.title}\n    Tags: {tags}")
 
             try:
-                response = await ai_client.complete(
-                    system=TOPIC_DEDUP_SYSTEM,
-                    user=TOPIC_DEDUP_USER.format(items="\n\n".join(lines)),
-                    max_tokens=4096,
-                )
+                completion_kwargs: dict[str, object] = {
+                    "system": TOPIC_DEDUP_SYSTEM,
+                    "user": TOPIC_DEDUP_USER.format(items="\n\n".join(lines)),
+                    "max_tokens": 2048,
+                }
+                provider = getattr(self.config.ai, "provider", None)
+                provider_value = getattr(provider, "value", provider)
+                if provider_value == "ali":
+                    completion_kwargs["extra_body"] = {"enable_thinking": False}
+                response = await ai_client.complete(**completion_kwargs)
                 result = parse_json_response(response)
                 if isinstance(result, list):
                     # Some OpenAI-compatible models honor JSON mode but return

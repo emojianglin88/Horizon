@@ -160,7 +160,7 @@ def test_topic_dedup_batches_large_feeds(monkeypatch) -> None:
     class FakeAIClient:
         async def complete(self, **kwargs):  # type: ignore[no-untyped-def]
             calls.append(kwargs)
-            assert kwargs["max_tokens"] == 4096
+            assert kwargs["max_tokens"] == 2048
             assert kwargs["user"].count("\n    Tags:") <= 60
             return '{"duplicates": []}'
 

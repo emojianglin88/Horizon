@@ -99,6 +99,7 @@ class AIClient(ABC):
         user: str,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
+        extra_body: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Generate completion from AI model.
 
@@ -107,6 +108,7 @@ class AIClient(ABC):
             user: User prompt
             temperature: Optional sampling temperature override
             max_tokens: Optional maximum tokens override
+            extra_body: Optional provider-specific request options
 
         Returns:
             str: Generated completion text
@@ -245,6 +247,7 @@ class OpenAIClient(AIClient):
         user: str,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
+        extra_body: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Generate completion using OpenAI-compatible API.
 
@@ -253,6 +256,7 @@ class OpenAIClient(AIClient):
             user: User prompt
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
+            extra_body: Provider-specific OpenAI-compatible request options
 
         Returns:
             str: Generated text
@@ -272,6 +276,7 @@ class OpenAIClient(AIClient):
                 max_tokens=max_tokens,
                 include_temperature=self._supports_temperature,
                 use_max_completion_tokens=self._use_max_completion_tokens,
+                extra_body=extra_body,
             )
         except Exception as exc:
             if self._supports_temperature and self._is_temperature_unsupported(str(exc)):
@@ -283,6 +288,7 @@ class OpenAIClient(AIClient):
                     max_tokens=max_tokens,
                     include_temperature=False,
                     use_max_completion_tokens=self._use_max_completion_tokens,
+                    extra_body=extra_body,
                 )
             elif not self._use_max_completion_tokens and self._is_max_tokens_unsupported(str(exc)):
                 self._use_max_completion_tokens = True
@@ -293,6 +299,7 @@ class OpenAIClient(AIClient):
                     max_tokens=max_tokens,
                     include_temperature=self._supports_temperature,
                     use_max_completion_tokens=True,
+                    extra_body=extra_body,
                 )
             else:
                 raise
@@ -314,6 +321,7 @@ class OpenAIClient(AIClient):
         max_tokens: int,
         include_temperature: bool,
         use_max_completion_tokens: bool,
+        extra_body: Optional[Dict[str, Any]],
     ):
         request_kwargs = {
             "model": self.model,
@@ -328,6 +336,8 @@ class OpenAIClient(AIClient):
             request_kwargs["temperature"] = temperature
         if self.provider not in self._NO_RESPONSE_FORMAT:
             request_kwargs["response_format"] = {"type": "json_object"}
+        if extra_body:
+            request_kwargs["extra_body"] = extra_body
         return await self.client.chat.completions.create(**request_kwargs)
 
     @staticmethod
