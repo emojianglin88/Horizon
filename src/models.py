@@ -260,6 +260,7 @@ class RSSSourceConfig(BaseModel):
     category: Optional[str] = None
     content_extractor: Optional[str] = None
     profile: ProfileRoute = None
+    extra_lookback_hours: int = Field(default=0, ge=0, le=24 * 30)
 
 
 class RedditSubredditConfig(BaseModel):

@@ -94,3 +94,18 @@ def test_unknown_extractor_name_ignored() -> None:
 
     assert len(items) == 1
     assert items[0].content == "Short summary from feed."
+
+
+def test_source_specific_extra_lookback() -> None:
+    client = _make_feed_client(_FEED)
+    source = RSSSourceConfig(
+        name="Slow Feed",
+        url="https://example.com/feed.xml",
+        extra_lookback_hours=24,
+    )
+    scraper = RSSScraper([source], client)
+    global_since = datetime(2026, 4, 24, 18, 0, tzinfo=timezone.utc)
+
+    items = asyncio.run(scraper.fetch(global_since))
+
+    assert [item.title for item in items] == ["Item 1"]
