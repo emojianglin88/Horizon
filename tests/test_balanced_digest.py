@@ -184,7 +184,7 @@ def test_topic_dedup_keeps_highest_scored_item(monkeypatch) -> None:
 
     class FakeAIClient:
         async def complete(self, **kwargs):  # type: ignore[no-untyped-def]
-            return '{"duplicates": [[1, 0]]}'
+            return '[[1, 0]]'
 
     monkeypatch.setattr(
         "src.orchestrator.create_ai_client", lambda config: FakeAIClient()

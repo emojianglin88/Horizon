@@ -708,7 +708,15 @@ class HorizonOrchestrator:
                     max_tokens=4096,
                 )
                 result = parse_json_response(response)
-                if not isinstance(result, dict):
+                if isinstance(result, list):
+                    # Some OpenAI-compatible models honor JSON mode but return
+                    # the duplicate groups as the top-level value.
+                    duplicate_groups = result
+                elif isinstance(result, dict):
+                    duplicate_groups = result.get(
+                        "duplicates", result.get("duplicate_groups", [])
+                    )
+                else:
                     failed_batches += 1
                     if log:
                         self.console.print(
@@ -716,7 +724,6 @@ class HorizonOrchestrator:
                             "invalid JSON, keeping it[/yellow]"
                         )
                     continue
-                duplicate_groups = result.get("duplicates", [])
                 if not isinstance(duplicate_groups, list):
                     failed_batches += 1
                     continue
